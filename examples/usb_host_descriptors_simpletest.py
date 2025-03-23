@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Unlicense
 
 import time
+
 import usb.core
 
 import adafruit_usb_host_descriptors
@@ -19,9 +20,7 @@ while True:
         print("product", device.product)
         print("serial", device.serial_number)
         print("config[0]:")
-        config_descriptor = adafruit_usb_host_descriptors.get_configuration_descriptor(
-            device, 0
-        )
+        config_descriptor = adafruit_usb_host_descriptors.get_configuration_descriptor(device, 0)
 
         i = 0
         while i < len(config_descriptor):
@@ -35,9 +34,7 @@ while True:
                 interface_class = config_descriptor[i + 5]
                 interface_subclass = config_descriptor[i + 6]
                 print(f" interface[{interface_number:d}]")
-                print(
-                    f"  class {interface_class:02x} subclass {interface_subclass:02x}"
-                )
+                print(f"  class {interface_class:02x} subclass {interface_subclass:02x}")
             elif descriptor_type == adafruit_usb_host_descriptors.DESC_ENDPOINT:
                 endpoint_address = config_descriptor[i + 2]
                 if endpoint_address & DIR_IN:
