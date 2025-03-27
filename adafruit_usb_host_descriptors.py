@@ -77,7 +77,7 @@ def get_configuration_descriptor(device, index):
     return full_buf
 
 
-def find_mouse_endpoint(device):
+def find_boot_mouse_endpoint(device):
     """
     Try to find a boot mouse endpoint in the device and return its
     interface index, and endpoint address.
