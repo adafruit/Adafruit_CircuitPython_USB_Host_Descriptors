@@ -11,6 +11,7 @@ Helpers for getting USB descriptors
 """
 
 import struct
+
 from micropython import const
 
 __version__ = "0.0.0+auto.0"
@@ -34,6 +35,10 @@ DESC_CONFIGURATION = 0x02
 DESC_STRING = 0x03
 DESC_INTERFACE = 0x04
 DESC_ENDPOINT = 0x05
+
+INTERFACE_HID = 0x03
+SUBCLASS_BOOT = 0x01
+PROTOCOL_MOUSE = 0x02
 
 
 def get_descriptor(device, desc_type, index, buf, language_id=0):
@@ -70,3 +75,39 @@ def get_configuration_descriptor(device, index):
     full_buf = bytearray(wTotalLength)
     get_descriptor(device, DESC_CONFIGURATION, index, full_buf)
     return full_buf
+
+
+def find_boot_mouse_endpoint(device):
+    """
+    Try to find a boot mouse endpoint in the device and return its
+    interface index, and endpoint address.
+    :param device: The device to search within
+    :return: mouse_interface_index, mouse_endpoint_address if found, or None, None otherwise
+    """
+    config_descriptor = get_configuration_descriptor(device, 0)
+    i = 0
+    mouse_interface_index = None
+    found_mouse = False
+    while i < len(config_descriptor):
+        descriptor_len = config_descriptor[i]
+        descriptor_type = config_descriptor[i + 1]
+        if descriptor_type == DESC_INTERFACE:
+            interface_number = config_descriptor[i + 2]
+            interface_class = config_descriptor[i + 5]
+            interface_subclass = config_descriptor[i + 6]
+            interface_protocol = config_descriptor[i + 7]
+            if (
+                interface_class == INTERFACE_HID
+                and interface_subclass == SUBCLASS_BOOT
+                and interface_protocol == PROTOCOL_MOUSE
+            ):
+                found_mouse = True
+                mouse_interface_index = interface_number
+
+        elif descriptor_type == DESC_ENDPOINT:
+            endpoint_address = config_descriptor[i + 2]
+            if endpoint_address & _DIR_IN:
+                if found_mouse:
+                    return mouse_interface_index, endpoint_address
+        i += descriptor_len
+    return None, None
