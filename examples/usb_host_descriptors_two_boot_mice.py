@@ -78,10 +78,25 @@ for device in usb.core.find(find_all=True):
 BUTTONS = ["left", "right", "middle"]
 
 mouse_bufs = []
+mouse_read_counts = [0, 0]
 for mouse_tg in mouse_tgs:
     # Buffer to hold data read from the mouse
     # Boot mice have 4 byte reports
     mouse_bufs.append(array.array("b", [0] * 4))
+
+
+def get_mouse_deltas(mouse_index):
+    if mouse_read_counts[mouse_index] == 4:
+        delta_x = mouse_bufs[mouse_index][1]
+        delta_y = mouse_bufs[mouse_index][2]
+    elif mouse_read_counts[mouse_index] == 8:
+        delta_x = mouse_bufs[mouse_index][2]
+        delta_y = mouse_bufs[mouse_index][4]
+    else:
+        raise ValueError(
+            f"Unsupported mouse packet size: {mouse_packet_sizes[mouse_index]}, must be 4 or 8"
+        )
+    return delta_x, delta_y
 
 
 while True:
@@ -90,14 +105,15 @@ while True:
             count = mouse.read(
                 mouse_endpoint_addresses[mouse_index], mouse_bufs[mouse_index], timeout=10
             )
+            mouse_read_counts[mouse_index] = count
         except usb.core.USBTimeoutError:
             continue
-
+        mouse_deltas = get_mouse_deltas(mouse_index)
         mouse_tgs[mouse_index].x = max(
-            0, min(display.width - 1, mouse_tgs[mouse_index].x + mouse_bufs[mouse_index][1])
+            0, min(display.width - 1, mouse_tgs[mouse_index].x + mouse_deltas[0])
         )
         mouse_tgs[mouse_index].y = max(
-            0, min(display.height - 1, mouse_tgs[mouse_index].y + mouse_bufs[mouse_index][2])
+            0, min(display.height - 1, mouse_tgs[mouse_index].y + mouse_deltas[1])
         )
 
         out_str = f"{mouse_tgs[mouse_index].x},{mouse_tgs[mouse_index].y}"
