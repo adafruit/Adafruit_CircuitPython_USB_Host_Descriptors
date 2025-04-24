@@ -17,7 +17,7 @@ for device in usb.core.find(find_all=True):
     keyboard_interface_index, keyboard_endpoint_address = (
         adafruit_usb_host_descriptors.find_boot_keyboard_endpoint(device)
     )
-    # if a boot mouse interface index and endpoint address were found
+    # if a boot keyboard interface index and endpoint address were found
     if keyboard_interface_index is not None and keyboard_endpoint_address is not None:
         keyboard = device
 
