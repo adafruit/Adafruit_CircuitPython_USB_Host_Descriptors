@@ -14,6 +14,11 @@ import struct
 
 from micropython import const
 
+try:
+    from typing import Literal
+except ImportError:
+    pass
+
 __version__ = "0.0.0+auto.0"
 __repo__ = "https://github.com/adafruit/Adafruit_CircuitPython_USB_Host_Descriptors.git"
 
@@ -39,6 +44,7 @@ DESC_ENDPOINT = 0x05
 INTERFACE_HID = 0x03
 SUBCLASS_BOOT = 0x01
 PROTOCOL_MOUSE = 0x02
+PROTOCOL_KEYBOARD = 0x01
 
 
 def get_descriptor(device, desc_type, index, buf, language_id=0):
@@ -77,13 +83,7 @@ def get_configuration_descriptor(device, index):
     return full_buf
 
 
-def find_boot_mouse_endpoint(device):
-    """
-    Try to find a boot mouse endpoint in the device and return its
-    interface index, and endpoint address.
-    :param device: The device to search within
-    :return: mouse_interface_index, mouse_endpoint_address if found, or None, None otherwise
-    """
+def _find_boot_endpoint(device, protocol_type: Literal[PROTOCOL_MOUSE, PROTOCOL_KEYBOARD]):
     config_descriptor = get_configuration_descriptor(device, 0)
     i = 0
     mouse_interface_index = None
@@ -99,7 +99,7 @@ def find_boot_mouse_endpoint(device):
             if (
                 interface_class == INTERFACE_HID
                 and interface_subclass == SUBCLASS_BOOT
-                and interface_protocol == PROTOCOL_MOUSE
+                and interface_protocol == protocol_type
             ):
                 found_mouse = True
                 mouse_interface_index = interface_number
@@ -111,3 +111,23 @@ def find_boot_mouse_endpoint(device):
                     return mouse_interface_index, endpoint_address
         i += descriptor_len
     return None, None
+
+
+def find_boot_mouse_endpoint(device):
+    """
+    Try to find a boot mouse endpoint in the device and return its
+    interface index, and endpoint address.
+    :param device: The device to search within
+    :return: mouse_interface_index, mouse_endpoint_address if found, or None, None otherwise
+    """
+    return _find_boot_endpoint(device, PROTOCOL_MOUSE)
+
+
+def find_boot_keyboard_endpoint(device):
+    """
+    Try to find a boot keyboard endpoint in the device and return its
+    interface index, and endpoint address.
+    :param device: The device to search within
+    :return: keyboard_interface_index, keyboard_endpoint_address if found, or None, None otherwise
+    """
+    return _find_boot_endpoint(device, PROTOCOL_KEYBOARD)
