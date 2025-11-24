@@ -210,10 +210,6 @@ def _find_endpoint(device, protocol_type: Literal[PROTOCOL_MOUSE, PROTOCOL_KEYBO
 
                 elif candidate_found:
                     print(f"Checking Interface {interface_number}...")
-
-                    # If it's Protocol 2, it's definitely a mouse (Standard).
-                    # If it's Protocol 0, we must check the descriptor.
-
                     rep_desc = get_report_descriptor(device, interface_number, hid_desc_len)
                     if _is_confirmed_mouse(rep_desc):
                         print(f" -> CONFIRMED: It is a Mouse/Trackpad (Usage 0x09 0x02)")
