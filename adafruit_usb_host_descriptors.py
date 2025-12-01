@@ -47,7 +47,7 @@ DESC_REPORT = 0x22
 
 INTERFACE_HID = 0x03
 SUBCLASS_BOOT = 0x01
-SUBCLASS_REPORT = None
+SUBCLASS_RESERVED = 0x00
 PROTOCOL_MOUSE = 0x02
 PROTOCOL_KEYBOARD = 0x01
 
@@ -238,7 +238,7 @@ def find_report_mouse_endpoint(device):
     :param device: The device to search within
     :return: mouse_interface_index, mouse_endpoint_address if found, or None, None otherwise
     """
-    return _find_endpoint(device, PROTOCOL_MOUSE, SUBCLASS_REPORT)
+    return _find_endpoint(device, PROTOCOL_MOUSE, SUBCLASS_RESERVED)
 
 
 def find_boot_keyboard_endpoint(device):
