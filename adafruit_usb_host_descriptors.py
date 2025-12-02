@@ -213,7 +213,7 @@ def _find_endpoint(device, protocol_type: Literal[PROTOCOL_MOUSE, PROTOCOL_KEYBO
                     print(f"Checking Interface {mouse_interface_index}...")
                     rep_desc = get_report_descriptor(device, mouse_interface_index, hid_desc_len)
                     if _is_confirmed_mouse(rep_desc):
-                        print(f" -> CONFIRMED: It is a Mouse/Trackpad (Usage 0x09 0x02) index:{mouse_interface_index}, end:{endpoint_address}")
+                        print(" -> CONFIRMED: It is a Mouse/Trackpad (Usage 0x09 0x02)")
                         return mouse_interface_index, endpoint_address
 
                     candidate_found = False  # Stop looking at this interface
