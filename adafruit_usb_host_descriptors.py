@@ -11,8 +11,8 @@ Helpers for getting USB descriptors
 """
 
 import struct
-import usb
 
+import usb
 from micropython import const
 
 try:
