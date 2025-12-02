@@ -191,9 +191,10 @@ def _find_endpoint(device, protocol_type: Literal[PROTOCOL_MOUSE, PROTOCOL_KEYBO
                 interface_class == INTERFACE_HID
                 and interface_protocol != PROTOCOL_KEYBOARD
                 and protocol_type == PROTOCOL_MOUSE
-                and subclass != SUBCLASS_BOOT
+                and subclass == SUBCLASS_RESERVED
             ):
                 candidate_found = True
+                mouse_interface_index = interface_number
 
         # Found HID Descriptor (Contains Report Length)
         elif descriptor_type == DESC_HID and candidate_found:
@@ -209,11 +210,11 @@ def _find_endpoint(device, protocol_type: Literal[PROTOCOL_MOUSE, PROTOCOL_KEYBO
                     return mouse_interface_index, endpoint_address
 
                 elif candidate_found:
-                    print(f"Checking Interface {interface_number}...")
-                    rep_desc = get_report_descriptor(device, interface_number, hid_desc_len)
+                    print(f"Checking Interface {mouse_interface_index}...")
+                    rep_desc = get_report_descriptor(device, mouse_interface_index, hid_desc_len)
                     if _is_confirmed_mouse(rep_desc):
-                        print(f" -> CONFIRMED: It is a Mouse/Trackpad (Usage 0x09 0x02)")
-                        return interface_number, endpoint_address
+                        print(f" -> CONFIRMED: It is a Mouse/Trackpad (Usage 0x09 0x02) index:{mouse_interface_index}, end:{endpoint_address}")
+                        return mouse_interface_index, endpoint_address
 
                     candidate_found = False  # Stop looking at this interface
 
