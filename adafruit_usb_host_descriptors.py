@@ -11,6 +11,7 @@ Helpers for getting USB descriptors
 """
 
 import struct
+import usb
 
 from micropython import const
 
@@ -121,7 +122,7 @@ def get_report_descriptor(device, interface_num, length):
             buf,
         )
         return buf
-    except Exception as e:
+    except usb.core.USBError as e:
         print(f"Failed to read Report Descriptor: {e}")
         return None
 
@@ -210,10 +211,8 @@ def _find_endpoint(device, protocol_type: Literal[PROTOCOL_MOUSE, PROTOCOL_KEYBO
                     return mouse_interface_index, endpoint_address
 
                 elif candidate_found:
-                    print(f"Checking Interface {mouse_interface_index}...")
                     rep_desc = get_report_descriptor(device, mouse_interface_index, hid_desc_len)
                     if _is_confirmed_mouse(rep_desc):
-                        print(" -> CONFIRMED: It is a Mouse/Trackpad (Usage 0x09 0x02)")
                         return mouse_interface_index, endpoint_address
 
                     candidate_found = False  # Stop looking at this interface
