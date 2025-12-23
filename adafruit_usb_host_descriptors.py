@@ -127,7 +127,7 @@ def get_report_descriptor(device, interface_num, length):
         return None
 
 
-def _is_confirmed_mouse(report_desc):
+def _is_confirmed_usage(report_desc, usage_type):
     """
     Scans the raw descriptor bytes for:
     Usage Page (Generic Desktop) = 0x05, 0x01
@@ -147,15 +147,20 @@ def _is_confirmed_mouse(report_desc):
             has_generic_desktop = True
 
     # We look for Usage Mouse (0x09 0x02)
-    has_mouse_usage = False
+    has_usage_type = False
     for i in range(len(report_desc) - 1):
-        if report_desc[i] == HID_TAG_USAGE and report_desc[i + 1] == USAGE_MOUSE:
-            has_mouse_usage = True
+        if report_desc[i] == HID_TAG_USAGE and report_desc[i + 1] == usage_type:
+            has_usage_type = True
 
-    return has_generic_desktop and has_mouse_usage
+    return has_generic_desktop and has_usage_type
 
 
-def _find_endpoint(device, protocol_type: Literal[PROTOCOL_MOUSE, PROTOCOL_KEYBOARD], subclass):
+def _find_endpoint(
+    device,
+    protocol_type: Literal[PROTOCOL_MOUSE, PROTOCOL_KEYBOARD],
+    subclass,
+    usage_type: Literal[USAGE_MOUSE, USAGE_KEYBOARD, USAGE_GAMEPAD, USAGE_JOYSTICK] = USAGE_MOUSE,
+):
     config_descriptor = get_configuration_descriptor(device, 0)
     i = 0
     mouse_interface_index = None
@@ -177,7 +182,7 @@ def _find_endpoint(device, protocol_type: Literal[PROTOCOL_MOUSE, PROTOCOL_KEYBO
             candidate_found = False
             hid_desc_len = 0
 
-            # Found mouse or keyboard interface depending on what was requested
+            # Found mouse or keyboard depending on what was requested
             if (
                 interface_class == INTERFACE_HID
                 and interface_protocol == protocol_type
@@ -212,7 +217,7 @@ def _find_endpoint(device, protocol_type: Literal[PROTOCOL_MOUSE, PROTOCOL_KEYBO
 
                 elif candidate_found:
                     rep_desc = get_report_descriptor(device, mouse_interface_index, hid_desc_len)
-                    if _is_confirmed_mouse(rep_desc):
+                    if _is_confirmed_usage(rep_desc, usage_type):
                         return mouse_interface_index, endpoint_address
 
                     candidate_found = False  # Stop looking at this interface
@@ -249,3 +254,23 @@ def find_boot_keyboard_endpoint(device):
     :return: keyboard_interface_index, keyboard_endpoint_address if found, or None, None otherwise
     """
     return _find_endpoint(device, PROTOCOL_KEYBOARD, SUBCLASS_BOOT)
+
+
+def find_gamepad_endpoint(device):
+    """
+    Try to find a report mouse endpoint in the device and return its
+    interface index, and endpoint address.
+    :param device: The device to search within
+    :return: mouse_interface_index, mouse_endpoint_address if found, or None, None otherwise
+    """
+    return _find_endpoint(device, PROTOCOL_MOUSE, SUBCLASS_RESERVED, USAGE_GAMEPAD)
+
+
+def find_joystick_endpoint(device):
+    """
+    Try to find a report mouse endpoint in the device and return its
+    interface index, and endpoint address.
+    :param device: The device to search within
+    :return: mouse_interface_index, mouse_endpoint_address if found, or None, None otherwise
+    """
+    return _find_endpoint(device, PROTOCOL_MOUSE, SUBCLASS_RESERVED, USAGE_JOYSTICK)
