@@ -10,6 +10,7 @@ Helpers for getting USB descriptors
 * Author(s): Scott Shawcroft
 """
 
+import array
 import struct
 
 import usb
@@ -72,13 +73,15 @@ def get_descriptor(device, desc_type, index, buf, language_id=0):
     # pylint: disable=invalid-name
     wValue = desc_type << 8 | index
     wIndex = language_id
-    device.ctrl_transfer(
+    result = device.ctrl_transfer(
         _REQ_RCPT_DEVICE | _REQ_TYPE_STANDARD | _DIR_IN,
         _REQ_GET_DESCRIPTOR,
         wValue,
         wIndex,
         buf,
     )
+    if isinstance(result, array.array):
+        buf[:] = result.tobytes()
 
 
 def get_device_descriptor(device):
@@ -114,13 +117,15 @@ def get_report_descriptor(device, interface_num, length):
     try:
         # 0x81 = Dir: IN | Type: Standard | Recipient: Interface
         # wValue = 0x2200 (Report Descriptor)
-        device.ctrl_transfer(
+        result = device.ctrl_transfer(
             _RECIP_INTERFACE | _REQ_TYPE_STANDARD | _DIR_IN,
             _REQ_GET_DESCRIPTOR,
             DESC_REPORT << 8,
             interface_num,
             buf,
         )
+        if isinstance(result, array.array):
+            buf[:] = result.tobytes()
         return buf
     except usb.core.USBError as e:
         print(f"Failed to read Report Descriptor: {e}")
