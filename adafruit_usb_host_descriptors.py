@@ -88,7 +88,7 @@ def get_device_descriptor(device):
     get_descriptor(device, DESC_DEVICE, 0, buf)
     full_buf = array.array("B", bytearray(buf[0]))
     get_descriptor(device, DESC_DEVICE, 0, full_buf)
-    return full_buf
+    return bytearray(full_buf)
 
 
 def get_configuration_descriptor(device, index):
@@ -100,7 +100,7 @@ def get_configuration_descriptor(device, index):
     wTotalLength = struct.unpack("<xxH", buf)[0]
     full_buf = array.array("B", bytearray(wTotalLength))
     get_descriptor(device, DESC_CONFIGURATION, index, full_buf)
-    return full_buf
+    return bytearray(full_buf)
 
 
 def get_report_descriptor(device, interface_num, length):
@@ -122,7 +122,7 @@ def get_report_descriptor(device, interface_num, length):
             interface_num,
             buf,
         )
-        return buf
+        return bytearray(buf)
     except usb.core.USBError as e:
         print(f"Failed to read Report Descriptor: {e}")
         return None
