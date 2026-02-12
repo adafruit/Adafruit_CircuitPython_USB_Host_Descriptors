@@ -10,6 +10,7 @@ Helpers for getting USB descriptors
 * Author(s): Scott Shawcroft
 """
 
+import array
 import struct
 
 import usb
@@ -83,23 +84,23 @@ def get_descriptor(device, desc_type, index, buf, language_id=0):
 
 def get_device_descriptor(device):
     """Fetch the device descriptor and return it."""
-    buf = bytearray(1)
+    buf = array.array("B", bytearray(1))
     get_descriptor(device, DESC_DEVICE, 0, buf)
-    full_buf = bytearray(buf[0])
+    full_buf = array.array("B", bytearray(buf[0]))
     get_descriptor(device, DESC_DEVICE, 0, full_buf)
-    return full_buf
+    return bytearray(full_buf)
 
 
 def get_configuration_descriptor(device, index):
     """Fetch the configuration descriptor, its associated descriptors and return it."""
     # Allow capitalization that matches the USB spec.
     # pylint: disable=invalid-name
-    buf = bytearray(4)
+    buf = array.array("B", bytearray(4))
     get_descriptor(device, DESC_CONFIGURATION, index, buf)
     wTotalLength = struct.unpack("<xxH", buf)[0]
-    full_buf = bytearray(wTotalLength)
+    full_buf = array.array("B", bytearray(wTotalLength))
     get_descriptor(device, DESC_CONFIGURATION, index, full_buf)
-    return full_buf
+    return bytearray(full_buf)
 
 
 def get_report_descriptor(device, interface_num, length):
@@ -110,7 +111,7 @@ def get_report_descriptor(device, interface_num, length):
     if length < 1:
         return None
 
-    buf = bytearray(length)
+    buf = array.array("B", bytearray(length))
     try:
         # 0x81 = Dir: IN | Type: Standard | Recipient: Interface
         # wValue = 0x2200 (Report Descriptor)
@@ -121,7 +122,7 @@ def get_report_descriptor(device, interface_num, length):
             interface_num,
             buf,
         )
-        return buf
+        return bytearray(buf)
     except usb.core.USBError as e:
         print(f"Failed to read Report Descriptor: {e}")
         return None
