@@ -338,7 +338,7 @@ class AudioFormat:
         rates = self.sample_rate_range if self.sample_rate_range else self.sample_rates
         return (
             f"<AudioFormat {self.bits_per_sample} bit x{self.channel_count} {rates} Hz, "
-            f"interface {self.interface} alt {self.alternate}, endpoint 0x{self.endpoint:02x}>"
+            + f"interface {self.interface} alt {self.alternate}, endpoint 0x{self.endpoint:02x}>"
         )
 
 
